@@ -1,9 +1,10 @@
-﻿  main.cpp
-C:\Users\rayya\source\repos\MISTapp\External\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
+﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (MISTapp.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.cpp
+C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\External\include\SFML\System\Exception.hpp(41,47): warning C4275: non dll-interface class 'std::runtime_error' used as base for dll-interface class 'sf::Exception'
   (compiling source file 'main.cpp')
       C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\stdexcept(100,19):
       see declaration of 'std::runtime_error'
-      C:\Users\rayya\source\repos\MISTapp\External\include\SFML\System\Exception.hpp(41,23):
+      C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\External\include\SFML\System\Exception.hpp(41,23):
       see declaration of 'sf::Exception'
   
-  MISTapp.vcxproj -> C:\Users\rayya\source\repos\MISTapp\Debug\MISTapp.exe
+  MISTapp.vcxproj -> C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\Debug\M.I.S.T..exe
