@@ -12,6 +12,9 @@
 #include <fstream>
 #include <vector>
 #include <filesystem>
+#include <shellapi.h>
+#include <shlobj.h>
+#include <commdlg.h>
 
 
 
@@ -108,23 +111,21 @@ public:
 	bool enterPressed = false;
 	bool cursorVisible = false;
 	std::size_t cursorPosition = 0;
+	sf::Vector2f textPos;
 
 
 	textBox(const sf::Vector2f& size, const std::string& placeholderText, const sf::Font& font, const sf::Vector2f& boxPos,
-		const sf::Vector2f& textPos, unsigned int charSize) : placeholder(font), userIn(font) {
+		const sf::Vector2f& textPos, unsigned int charSize) : placeholder(font), userIn(font), textPos(textPos) {
 
 		textBoxBox.setSize(size);
-		//textBoxBox.setOrigin(textBoxBox.getSize() / 2.0f);
 		textBoxBox.setPosition(boxPos);
 		textBoxBox.setFillColor(sf::Color(0x0F1117FF));
 
 		placeholder.setString(placeholderText);
-		//placeholder.setOrigin(textBoxBox.getGlobalBounds().size / 2.0f);
 		placeholder.setPosition(textPos);
 		placeholder.setFillColor(sf::Color(0x484A4EFF));
 		placeholder.setCharacterSize(charSize);
 
-		//userIn.setOrigin(textBoxBox.getGlobalBounds().size / 2.0f);
 		userIn.setPosition(textPos);
 		userIn.setFillColor(sf::Color(0xF3F3F3FF));
 		userIn.setCharacterSize(charSize);
@@ -137,11 +138,11 @@ public:
 
 	void UpdateCursorPosition() {
 		if (input.empty()) {
-			cursor.setPosition({ textBoxBox.getPosition().x + 5.f - scrollOffset, textBoxBox.getPosition().y + (textBoxBox.getSize().y - userIn.getCharacterSize()) / 2.f });
+			cursor.setPosition({ textPos.x + 5.f - scrollOffset, textPos.y });
 		}
 		else {
 			sf::Vector2f textEnd = userIn.findCharacterPos(cursorPosition);
-			cursor.setPosition({ std::min(textEnd.x, textBoxBox.getPosition().x + textBoxBox.getSize().x - 5.f), textBoxBox.getPosition().y + (textBoxBox.getSize().y - cursor.getSize().y) / 2.f });
+			cursor.setPosition({ std::min(textEnd.x, textBoxBox.getPosition().x + textBoxBox.getSize().x - 5.f), textEnd.y });
 		}
 	}
 
@@ -174,7 +175,7 @@ public:
 		}
 
 		// Update text position
-		userIn.setPosition({ textBoxBox.getPosition().x + 5.f - scrollOffset, textBoxBox.getPosition().y + (textBoxBox.getSize().y - userIn.getCharacterSize()) / 2.f });
+		userIn.setPosition({ textPos.x + 5.f - scrollOffset, textPos.y });
 
 		// Update visible area for clipping
 		textVisibleArea = sf::FloatRect({ textBoxBox.getPosition().x + 2.f, textBoxBox.getPosition().y + 2.f },
@@ -199,19 +200,22 @@ public:
 		}
 		if (isSelected) {
 			if (const auto* textEvent = event->getIf<sf::Event::TextEntered>()) {
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Backspace) && !input.empty()) {
+				if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Backspace) || textEvent->unicode == '\b') && !input.empty()) {
 					input.pop_back();
-
+					cursorPosition = std::max(cursorPosition - 1, static_cast<std::size_t>(0));
 					scrollOffset = std::max(0.f, scrollOffset - userIn.getCharacterSize());
 
 				}
-				else if (sf::Event::TextEntered().unicode < 128 && sf::Event::TextEntered().unicode != '\r' && sf::Event::TextEntered().unicode != '\n') {
-
-					input += static_cast<char>(textEvent->unicode);
-
+				else if (textEvent->unicode == '\r' || textEvent->unicode == '\n') {
+					input.insert(cursorPosition, 1, '\n');
+					cursorPosition++;
 				}
 
+				else if (textEvent->unicode < 128 && textEvent->unicode != 27) {
+					input.insert(cursorPosition, 1, static_cast<char>(textEvent->unicode));
+					cursorPosition++;
 
+				}
 				
 				userIn.setString(input);
 				UpdateTextPosition();
@@ -220,8 +224,10 @@ public:
 				cursorBlink.restart();
 
 			}
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) {
-				enterPressed = true;
+			if (const auto* keyEvent = event->getIf<sf::Event::KeyPressed>()) {
+				if (keyEvent->code == sf::Keyboard::Key::Enter) {
+					enterPressed = true;
+				}
 			}
 		}
 	}
@@ -230,7 +236,7 @@ public:
 
 		window->draw(textBoxBox);
 		if (input.empty() && !isSelected) {
-			placeholder.setPosition({ textBoxBox.getPosition().x + 5.f, textBoxBox.getPosition().y + (textBoxBox.getSize().y - placeholder.getCharacterSize()) / 2.f });
+			placeholder.setPosition({ textPos.x + 5.f, textPos.y });
 			window->draw(placeholder);
 		}
 		else {
@@ -320,11 +326,57 @@ public:
 };
 
 
+//class dropletRow {
+//public:
+//
+//	dropletRow(textBox& desc(), 
+//				textBox& initMeasurement(), 
+//				Button& initUnit(),	
+//				sf::Sprite& sprite, 
+//				textBox& endMeasurement(), 
+//				Button& finalUnit()) {}
+//
+//};
+
+
+class Dropdown {
+public:
+	std::vector<Button> items;
+	bool isVisible = false;
+
+	Dropdown(const std::vector<std::string>& itemTexts, const sf::Font& font, const sf::Vector2f& size, const sf::Vector2f& position, unsigned int charSize) {
+	
+		for (size_t i = 0; i < itemTexts.size(); ++i)
+		{
+			Button item({ size.x, size.y }, itemTexts[i], font, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { position.x, position.y + i * (size.y + 5) }, {position.x, position.y + i * (size.y + 5)}, charSize);
+			item.hoverCol = sf::Color(0x0F1117FF);
+			items.push_back(item);
+		}
+	
+	}
+	void draw(sf::RenderWindow* window) {
+		if (isVisible) {
+			for (auto& item : items) {
+				item.draw(window);
+			}
+		}
+	}
+
+	void hover(const sf::RenderWindow* window) {
+		if (isVisible) {
+			for (auto& item : items) {
+				item.hover(window);
+			}
+		}
+	}
+
+};
+
 int main() {
 
 
 	sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "M.I.S.T.", sf::State::Fullscreen);
-	
+
 	window->setFramerateLimit(60);
 
 	bool exitBox = false;
@@ -339,6 +391,13 @@ int main() {
 	sf::Font titleFont;
 	loadFont(titleFont, "Fonts/Kanit-Bold.ttf");
 	sf::Text titleText(titleFont);
+
+	sf::Texture arrowIcon("Assets/Arrow.png", false, sf::IntRect({0, 0} ,{75, 35}));
+	sf::Sprite arrow(arrowIcon);
+	arrow.setPosition({938 , 456});
+
+	bool imgLoaded = false;
+
 
 	std::string folderPath = "Files";
 
@@ -442,11 +501,29 @@ int main() {
 
 	textBox fileLoc({ 660, 66 }, "File location...", bodyFont, { 492, 553 }, { 517, 566 }, 30u);
 
-	Button launch({ 385, 95 }, "Launch Project", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), {windowSize.x /2.0f, windowSize.y/2.0f + 300}, {windowSize.x / 2.0f, windowSize.y / 2.0f + 300}, 40u);
+	Button launch({ 385, 95 }, "Launch Project", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { windowSize.x / 2.0f, windowSize.y / 2.0f + 300 }, { windowSize.x / 2.0f - 40, windowSize.y / 2.0f + 290 }, 40u);
 	launch.hoverCol = sf::Color(0x0F3F3F37F);
 
 	Button backButton({ 100u,100u }, "<-", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 292, 280 }, { 292, 270 }, 30u);
 	backButton.hoverCol = sf::Color(0x0F1117FF);
+
+	Button browse({150,66}, "Browse", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 1242, 586 }, { 1242, 575 }, 30u);
+	browse.hoverCol = sf::Color(0x0F3F3F37F);
+
+	OPENFILENAMEW openMIS;
+	wchar_t szFileMIS[260] = { 0 };
+	ZeroMemory(&openMIS, sizeof(openMIS));
+	openMIS.lStructSize = sizeof(openMIS);
+	openMIS.hwndOwner = NULL;
+	openMIS.lpstrFile = szFileMIS;
+	openMIS.nMaxFile = sizeof(szFileMIS);
+	openMIS.lpstrFilter = L"MIS(.mis)\0*.MIS\0";
+	openMIS.nFilterIndex = 1;
+	openMIS.lpstrFileTitle = NULL;
+	openMIS.nMaxFileTitle = 0;
+	openMIS.lpstrInitialDir = NULL;
+	openMIS.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
 
 	//New File Window End
 
@@ -458,21 +535,43 @@ int main() {
 	toolBar.setPosition({ 20, 20 });
 	toolBar.setFillColor(sf::Color(0x17191FFF));
 
+	Button fileButton({ 90u, 50u }, "File", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 50, 25 }, { 50, 25 }, 30u);
+	fileButton.hoverCol = sf::Color(0x0F1117FF);
+
+	std::vector<std::string> dropdownItems = { "New", "Open", "Save", "Save As", "Exit" };
+	Dropdown fileDropdown(dropdownItems, bodyFont, { 90, 50 }, { 50, 25 }, 30u);
+
 	sf::RectangleShape measureWindow({ 920u, 954u });
 	measureWindow.setPosition({ 20, 106 });
 	measureWindow.setFillColor(sf::Color(0x1E212AFF));
 
-	sf::RectangleShape imgWindow({680, 750});
-	imgWindow.setPosition({1214,106});
+	sf::RectangleShape imgWindow({ 680, 750 });
+	imgWindow.setPosition({ 1214,106 });
 	imgWindow.setFillColor(sf::Color(0x1E212AFF));
 
-	Button imgButton({ 650u, 510u }, "Insert Image", bodyFont, sf::Color(0x17191FFF), sf::Color(0xF3F3F3FF), { 1554, 377 }, { 1554, 377 }, 30u);
+	Button imgButton({ 650u, 510u }, "Insert Image \n   (650x510)", bodyFont, sf::Color(0x17191FFF), sf::Color(0xF3F3F3FF), { 1554, 377 }, { 1554, 377 }, 30u);
 	imgButton.hoverCol = sf::Color(0x0F1117FF);
 
 	textBox imgDesc({ 650u, 170u }, "Image Description...", bodyFont, { 1229, 650 }, { 1229, 650 }, 30u);
 
 	Button newImg({ 215u, 167u }, "+", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 1554, 1000 }, { 1512, 858 }, 200u);
 	newImg.hoverCol = sf::Color(0xF3F3F37F);
+
+	OPENFILENAMEW openIMG;
+	wchar_t szFile[260] = { 0 };
+	ZeroMemory(&openIMG, sizeof(openIMG));
+	openIMG.lStructSize = sizeof(openIMG);
+	openIMG.hwndOwner = NULL;
+	openIMG.lpstrFile = szFile;
+	openIMG.nMaxFile = sizeof(szFile);
+	openIMG.lpstrFilter = L"PNG(.png)\0*.PNG\0'All Types'\0*.*\0";
+	openIMG.nFilterIndex = 1;
+	openIMG.lpstrFileTitle = NULL;
+	openIMG.nMaxFileTitle = 0;
+	openIMG.lpstrInitialDir = NULL;
+	openIMG.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	
 
 	//Instruction Bar End
 
@@ -498,9 +597,12 @@ int main() {
 		FilePos6.hover(window);
 		FilePos7.hover(window);
 		backButton.hover(window);
+		browse.hover(window);
 		launch.hover(window);
 		imgButton.hover(window);
 		newImg.hover(window);
+		fileButton.hover(window);
+		fileDropdown.hover(window);
 
 		if (fileCount >= 7) {
 			newFile.buttonBox.setPosition({ tiles.getPosition().x + 111, tiles.getPosition().y + 261 });
@@ -539,7 +641,10 @@ int main() {
 		// Exit Box Begin
 		while (auto event = window->pollEvent()) {
 
-			
+			projectName.eventHandler(event, window);
+			fileLoc.eventHandler(event, window);
+			imgDesc.eventHandler(event, window);
+
 
 			if (event->is<sf::Event::Closed>()) {
 
@@ -593,11 +698,12 @@ int main() {
 					projectScreen = true;
 				}
 
-				projectName.eventHandler(event, window);
-				projectName.update();
+				if (browse.isMouseOver(window)) {
+					GetOpenFileName(&openMIS);
+					mainMenu = false;
+					createFile = true;
+				}
 
-				fileLoc.eventHandler(event, window);
-				fileLoc.update();
 
 				if (projectName.isMouseOver(window)) { window->setMouseCursor(textCursor); }
 				else { window->setMouseCursor(mainCursor); }
@@ -609,14 +715,26 @@ int main() {
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && projectScreen) {
 				if (imgButton.isMouseOver(window)) {
 					//Insert code that allows you to insert an image
+					/*TCHAR documentsPath[MAX_PATH];
+					SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentsPath);
+					ShellExecute(NULL, L"open", documentsPath, NULL, NULL, SW_SHOWDEFAULT);*/
+
+					
+					if (GetOpenFileName(&openIMG)) { imgLoaded = true; }
+					
+
 				}
+
 
 				if (newImg.isMouseOver(window)) {
 					//Insert code that allows you to add a new image
 				}
-				
-				imgDesc.eventHandler(event, window);
-				imgDesc.update();
+
+				if (fileButton.isMouseOver(window)) { fileDropdown.isVisible = true; }
+				else { fileDropdown.isVisible = false; }
+
+
+
 				if (imgDesc.isMouseOver(window)) { window->setMouseCursor(textCursor); }
 				else { window->setMouseCursor(mainCursor); }
 			}
@@ -624,7 +742,10 @@ int main() {
 
 		}
 
-		
+		projectName.update();
+		fileLoc.update();
+		imgDesc.update();
+
 		// Exit Box End
 
 
@@ -646,8 +767,8 @@ int main() {
 			FilePos6.draw(window);
 			FilePos7.draw(window);*/
 
-			
-			
+
+
 
 		}
 
@@ -656,6 +777,7 @@ int main() {
 			window->draw(newFileWindow);
 			projectName.draw(window);
 			fileLoc.draw(window);
+			browse.draw(window);
 			backButton.draw(window);
 			launch.draw(window);
 
@@ -664,13 +786,28 @@ int main() {
 		}
 
 		else if (projectScreen) {
-			
+
 			window->draw(toolBar);
 			window->draw(measureWindow);
 			window->draw(imgWindow);
-			imgButton.draw(window);
+			
 			imgDesc.draw(window);
 			newImg.draw(window);
+			window->draw(arrow);
+			fileButton.draw(window);
+			fileDropdown.draw(window);
+
+			if (imgLoaded) {
+
+				sf::Texture imgInput(szFile, false, sf::IntRect({ 0, 0 }, { 650u, 510u }));
+				sf::Sprite imgSprite(imgInput);
+
+				imgSprite.setOrigin(imgSprite.getGlobalBounds().size / 2.0f);
+				imgSprite.setPosition({ 1554, 377 });
+				window->draw(imgSprite);
+			}
+			else { imgButton.draw(window); }
+			
 
 		}
 
@@ -694,6 +831,7 @@ int main() {
 	} //End of Main Loop
 
 	delete window;
-	
+
 	return 0;
+
 }

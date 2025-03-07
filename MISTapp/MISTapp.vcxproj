@@ -24,6 +24,7 @@
     <ProjectGuid>{633e1b15-615d-43c4-ab95-6432d6c40c56}</ProjectGuid>
     <RootNamespace>MISTapp</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>M.I.S.T.</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
