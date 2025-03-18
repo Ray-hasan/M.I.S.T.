@@ -309,6 +309,7 @@ public:
 		}
 	}
 
+	//Include a dropdown menu method maybe even a class idk ill think ab it
 	void setTextPosition(const sf::Vector2f& pos) {
 		buttonText.setPosition(pos);
 	}
@@ -365,40 +366,26 @@ int mToFeet(double m) {
 int feetToM(double feet) {
 	return cmToM(feetToCm(feet));
 }
-class dropletRow {
-public:
-    sf::Font font;
-    std::string text;
-
-    textBox desc;
-    textBox initMeasurement;
-    Button initUnit;
-	sf::Texture arrowIcon;
-    sf::Sprite arrow;
-    textBox finalMeasurement;
-    Button finalUnit;
-	Dropdown initUnitDropdown;
-	Dropdown finalUnitDropdown;
-	int i, j;
-	std::vector<std::string> units = { "in.", "cm", "ft.", "m" };
-
-	dropletRow()
-		: 
-		  desc({ 170, 50 }, "...", font, { 54, 447 }, { 60, 450 }, 20u),
-		  initMeasurement({ 145, 50 }, "0.00", font, { 254, 447 }, { 260, 450 }, 20u),
-		  initUnit({ 75, 50 }, units[i], font, sf::Color(0x2B2F3EFF), sf::Color(0xF3F3F3FF), {447, 472}, {452, 450}, 20u),
-		  initUnitDropdown(units, font, { 75, 50 }, { 447, 472 }, 20u),
-		  arrowIcon("Assets/Arrow.png", false, sf::IntRect({ 0, 0 }, { 75, 35 })),
-		  arrow(arrowIcon),
-		  finalMeasurement({ 145, 50 }, "0.00", font, { 654, 447 }, { 660, 450 }, 20u),
-		  finalUnit({ 75, 50 }, units[j], font, sf::Color(0x2B2F3EFF), sf::Color(0xF3F3F3FF), {847, 472}, {852, 450}, 20u),
-		  finalUnitDropdown(units, font, { 75, 50 }, {847, 472}, 20u) {
-
-		loadFont(font, "Fonts/Kanit-Medium.ttf");
-		arrow.setPosition({ 531, 454 });
-	
-	}
-};
+//class dropletRow {
+//public:
+//	sf::Font font;
+//	std::string text;
+//
+//	textBox desc({ 170, 50 }, "...", font, { 54, 447 }, { 60, 450 }, 20u);
+//	textBox initMeasurement({ 145, 50 }, "0.00", font, { 254, 447 }, { 260, 450 }, 20u);
+//	Button initUnit({ 75, 50 }, text, font, sf::Color(0x2B2F3EFF), { 447, 472 }, { 452, 450 }, 20u);
+//	sf::Sprite& sprite;
+//	textBox finalMeasurement({ 145, 50 }, "0.00", font, { 654, 447 }, { 660, 450 }, 20u);
+//	Button finalUnit({ 75, 50 }, text, font, sf::Color(0x2B2F3EFF), { 847, 472 }, { 852, 450 }, 20u);
+//
+//	dropletRow(textBox& des(), 
+//				textBox& initM(), 
+//				Button& initU(),	
+//				sf::Sprite& sprit, 
+//				textBox& endM(), 
+//				Button& finalU()) {}
+//
+//};
 
 
 class Dropdown {
