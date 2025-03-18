@@ -310,6 +310,9 @@ public:
 	}
 
 	//Include a dropdown menu method maybe even a class idk ill think ab it
+	void setTextPosition(const sf::Vector2f& pos) {
+		buttonText.setPosition(pos);
+	}
 
 	bool isMouseOver(const sf::RenderWindow* window) const {
 		
@@ -325,16 +328,62 @@ public:
 
 };
 
+//Conversion functions
 
+int cmToInch(double cm) {
+	return cm / 2.54;
+}
+int inchToCm(double inch) {
+	return inch * 2.54;
+}
+int cmToM(double cm) {
+	return cm / 100;
+}
+int mToCm(double m) {
+	return m * 100;
+}
+int inchtoM(double inch) {
+	return cmToM(inchToCm(inch));
+}
+int mToInch(double m) {
+	return cmToInch(mToCm(m));
+}
+int inchToFeet(double inch) {
+	return inch / 12;
+}
+int feetToInch(double feet) {
+	return feet * 12;
+}
+int cmToFeet(double cm) {
+	return inchToFeet(cmToInch(cm));
+}
+int feetToCm(double feet) {
+	return inchToCm(feetToInch(feet));
+}
+int mToFeet(double m) {
+	return cmToFeet(mToCm(m));
+}
+int feetToM(double feet) {
+	return cmToM(feetToCm(feet));
+}
 //class dropletRow {
 //public:
+//	sf::Font font;
+//	std::string text;
 //
-//	dropletRow(textBox& desc(), 
-//				textBox& initMeasurement(), 
-//				Button& initUnit(),	
-//				sf::Sprite& sprite, 
-//				textBox& endMeasurement(), 
-//				Button& finalUnit()) {}
+//	textBox desc({ 170, 50 }, "...", font, { 54, 447 }, { 60, 450 }, 20u);
+//	textBox initMeasurement({ 145, 50 }, "0.00", font, { 254, 447 }, { 260, 450 }, 20u);
+//	Button initUnit({ 75, 50 }, text, font, sf::Color(0x2B2F3EFF), { 447, 472 }, { 452, 450 }, 20u);
+//	sf::Sprite& sprite;
+//	textBox finalMeasurement({ 145, 50 }, "0.00", font, { 654, 447 }, { 660, 450 }, 20u);
+//	Button finalUnit({ 75, 50 }, text, font, sf::Color(0x2B2F3EFF), { 847, 472 }, { 852, 450 }, 20u);
+//
+//	dropletRow(textBox& des(), 
+//				textBox& initM(), 
+//				Button& initU(),	
+//				sf::Sprite& sprit, 
+//				textBox& endM(), 
+//				Button& finalU()) {}
 //
 //};
 
@@ -343,19 +392,31 @@ class Dropdown {
 public:
 	std::vector<Button> items;
 	bool isVisible = false;
+	
 
 	Dropdown(const std::vector<std::string>& itemTexts, const sf::Font& font, const sf::Vector2f& size, const sf::Vector2f& position, unsigned int charSize) {
-	
-		for (size_t i = 0; i < itemTexts.size(); ++i)
+
+		
+
+		for (size_t i = 0; i < itemTexts.size(); i++)
 		{
-			Button item({ size.x, size.y }, itemTexts[i], font, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { position.x, position.y + i * (size.y + 5) }, {position.x, position.y + i * (size.y + 5)}, charSize);
-			item.hoverCol = sf::Color(0x0F1117FF);
-			items.push_back(item);
+			if (itemTexts.size() >= 5) {
+				Button item({ 3 * size.x, size.y }, itemTexts[i], font, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { position.x, position.y + i * (size.y) }, { position.x - 90, position.y + i * (size.y) - 9 }, charSize);
+				if (itemTexts[i].length() > 4) { item.setTextPosition({ position.x - 75, position.y + i * (size.y) - 9 }); }
+				item.hoverCol = sf::Color(0x0F1117FF);
+				items.push_back(item);
+			}
+			else {
+				Button item(size, itemTexts[i], font, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { position.x, position.y + i * (size.y) }, { position.x, position.y + i * (size.y) - 9 }, charSize);
+				item.hoverCol = sf::Color(0x0F1117FF);
+				items.push_back(item);
+			}
 		}
 	
 	}
 	void draw(sf::RenderWindow* window) {
 		if (isVisible) {
+			
 			for (auto& item : items) {
 				item.draw(window);
 			}
@@ -535,11 +596,11 @@ int main() {
 	toolBar.setPosition({ 20, 20 });
 	toolBar.setFillColor(sf::Color(0x17191FFF));
 
-	Button fileButton({ 90u, 50u }, "File", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 50, 25 }, { 50, 25 }, 30u);
+	Button fileButton({ 90u, 50u }, "File", bodyFont, sf::Color(0x1E212AFF), sf::Color(0xF3F3F3FF), { 71, 50 }, { 65, 40 }, 30u);
 	fileButton.hoverCol = sf::Color(0x0F1117FF);
 
 	std::vector<std::string> dropdownItems = { "New", "Open", "Save", "Save As", "Exit" };
-	Dropdown fileDropdown(dropdownItems, bodyFont, { 90, 50 }, { 50, 25 }, 30u);
+	Dropdown fileDropdown(dropdownItems, bodyFont, { 90, 50 }, { 161, 100 }, 30u);
 
 	sf::RectangleShape measureWindow({ 920u, 954u });
 	measureWindow.setPosition({ 20, 106 });
@@ -714,15 +775,7 @@ int main() {
 
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && projectScreen) {
 				if (imgButton.isMouseOver(window)) {
-					//Insert code that allows you to insert an image
-					/*TCHAR documentsPath[MAX_PATH];
-					SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documentsPath);
-					ShellExecute(NULL, L"open", documentsPath, NULL, NULL, SW_SHOWDEFAULT);*/
-
-					
 					if (GetOpenFileName(&openIMG)) { imgLoaded = true; }
-					
-
 				}
 
 
