@@ -7,4 +7,32 @@ C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\External\include\SFML\Syst
       C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\External\include\SFML\System\Exception.hpp(41,23):
       see declaration of 'sf::Exception'
   
+C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(785,26): warning C4018: '>=': signed/unsigned mismatch
+C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(1257,27): warning C4018: '<': signed/unsigned mismatch
+      C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(1257,27):
+      the template instantiation context (the oldest one first) is
+          C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(1252,11):
+          see reference to function template instantiation 'void std::visit<main::<lambda_3>,_Ty&,void>(_Callable &&,_Ty &)' being compiled
+          with
+          [
+              _Ty=dropletRow,
+              _Callable=main::<lambda_3>
+          ]
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\variant(1587,19):
+          see reference to variable template 'const bool _Variant_all_visit_results_same<void,`main'::`147'::<lambda_3>,std::_Meta_list<>,std::variant<textBox,Droplet,sf::Sprite> &>' being compiled
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\variant(1561,10):
+          see reference to variable template 'const bool _Variant_all_visit_results_same<void,`main'::`147'::<lambda_3>,std::_Meta_list<Droplet &> >' being compiled
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\variant(1556,29):
+          see reference to function template instantiation 'unknown-type std::invoke(_Callable &&,_Ty1 &&,_Types2 ...) noexcept(<expr>)' being compiled
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\type_traits(1703,45):
+          while compiling class template member function 'unknown-type std::_Invoker_functor::_Call(_Callable &&,_Types ...) noexcept(<expr>)'
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\include\type_traits(1602,46):
+          see reference to function template instantiation 'auto main::<lambda_3>::operator ()<Droplet&>(_T1) const' being compiled
+          with
+          [
+              _T1=Droplet &
+          ]
+  
+C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(1270,27): warning C4018: '<': signed/unsigned mismatch
+C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\MISTapp\main.cpp(138,1): warning C4715: 'convert': not all control paths return a value
   MISTapp.vcxproj -> C:\Users\rayya\source\repos\Ray-hasan\M.I.S.T\MISTapp\Debug\M.I.S.T..exe
